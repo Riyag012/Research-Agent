@@ -2,6 +2,8 @@
 
 import logging
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_google_vertexai import ChatVertexAI
+from google.oauth2 import service_account
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Configure logging
@@ -10,7 +12,20 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 def get_planner_agent():
     """Initializes and returns the Planner Agent."""
     try:
-        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.0)
+        # credentials_path = "D:/Projects/Research Agent/credentials.json"
+        # credentials = service_account.Credentials.from_service_account_file(credentials_path)
+        # llm = ChatVertexAI(
+        #     model_name="gemini-1.5-flash",
+        #     project="research-agent-473309",
+        #     credentials=credentials,
+        #     temperature=0.0
+        # )
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-2.0-flash",
+            # project="research-agent-473309",
+            # credentials=credentials,
+            temperature=0.0
+        )
         
         ## THE FIX: Modify the instructions to request a smaller outline.
         ## This ensures the total number of sections is less than the daily API limit of 50.

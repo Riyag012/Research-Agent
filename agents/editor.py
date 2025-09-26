@@ -3,6 +3,8 @@ import logging
 from typing import List
 from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_google_vertexai import ChatVertexAI
+from google.oauth2 import service_account
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Configure logging
@@ -14,7 +16,20 @@ load_dotenv()
 def get_editor_agent():
     """Initializes and returns the Editor Agent's LLM chain."""
     try:
-        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
+        # credentials_path = "D:/Projects/Research Agent/credentials.json"
+        # credentials = service_account.Credentials.from_service_account_file(credentials_path)
+        # llm = ChatVertexAI(
+        #     model_name="gemini-1.5-flash",
+        #     project="research-agent-473309",
+        #     credentials=credentials,
+        #     temperature=0.0
+        # )
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-2.0-flash",
+            # project="research-agent-473309",
+            # credentials=credentials,
+            temperature=0.0
+        )
         editor_prompt = ChatPromptTemplate.from_messages(
             [
                 (
@@ -30,6 +45,7 @@ def get_editor_agent():
                     4.  **Proofread and Polish:** Review the entire document for grammatical errors, awkward phrasing, and inconsistencies.
                     5.  **Improve Transitions:** Ensure smooth transitions between sections to improve the overall flow.
                     6.  **Final Formatting:** The final output must be a single, well-formatted Markdown document.
+                    7.  **IMPORTANT - Preserve Notices:** If any section begins with an italicized notice like '*Generated using LLM due to insufficient search results.*', you MUST preserve this notice and its italics exactly as it is at the end of its section in the final report. Do not edit or remove it. Only italicize this warning '*Generated using LLM due to insufficient search results.*' keeping rest of the section content normal.
                     """
                 ),
                 ("user",

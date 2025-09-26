@@ -1,7 +1,7 @@
 # graph.py
 
 import logging
-import time ## THE FIX: Add the time module
+import time
 from typing import TypedDict, List, Dict
 from langgraph.graph import StateGraph, END
 
@@ -17,8 +17,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Define the state for our graph
 class GraphState(TypedDict):
     topic: str
-    outline: str
-    search_results: List[Dict] # Changed to List[Dict] for simplicity
+    outline: List[str]
+    search_results: List[Dict]
     sections: List[str]
     report: str
     error: str
@@ -42,15 +42,15 @@ def search_node(state: GraphState):
 def write_node(state: GraphState):
     logging.info("Executing Write Node")
     search_results = state.get("search_results")
+    outline = state.get("outline")  # <-- FIX: Get the original outline
     writer_agent = get_writer_agent()
-    sections = run_writer_agent(writer_agent, search_results)
+    # <-- FIX: Pass the outline to the writer to ensure all sections are processed
+    sections = run_writer_agent(writer_agent, outline, search_results)
     return {"sections": sections}
 
 def editor_node(state: GraphState):
     logging.info("Executing Editor Node")
     
-    ## THE FIX: Add a delay to respect the strict 2 RPM limit of gemini-2.5-pro.
-    ## (60 seconds / 2 RPM = 30 seconds/request)
     logging.info("Pausing for 30 seconds before starting editor to respect API rate limits.")
     time.sleep(30)
     
