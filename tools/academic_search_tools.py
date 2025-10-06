@@ -11,11 +11,43 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 semantic_scholar_lock = asyncio.Lock()
 
-async def search_arxiv(query: str, max_results: int = 5) -> list:
-    # ... (this function is fine, no changes needed)
-    pass
+async def search_arxiv(query: str, max_results: int = 3) -> list:
+    """Asynchronously searches arXiv for a given query."""
+    # ArXiv is not very sensitive, a small delay is fine.
+    await asyncio.sleep(4)
+    try:
+        from langchain_community.tools import ArxivQueryRun
+        arxiv_tool = ArxivQueryRun(load_max_docs=max_results)
+        loop = asyncio.get_event_loop()
+        results = await loop.run_in_executor(None, arxiv_tool.run, query)
+        
+        if "Published" not in results:
+             return [{"title": "No relevant articles found on arXiv", "summary": results, "url": "", "source": "arXiv"}]
+        
+        entries = results.split('Published: ')
+        formatted_results = []
+        for entry in entries[1:]:
+            parts = entry.split('\nTitle: ')
+            if len(parts) < 2: continue
+            
+            url_part = parts[0].strip()
+            title_part = parts[1].split('\nAuthors: ')[0].strip()
+            summary_part = entry.split('\nSummary: ')[1].strip() if '\nSummary: ' in entry else 'No summary available.'
+            
+            formatted_results.append({
+                "title": title_part,
+                "summary": summary_part,
+                "url": url_part,
+                "source": "arXiv"
+            })
+        logging.info(f"ArXiv search for '{query}' returned {len(formatted_results)} results.")
+        return formatted_results
+    except Exception as e:
+        logging.error(f"An error occurred during ArXiv search for '{query}': {e}")
+        return []
 
-async def search_semantic_scholar(query: str, max_results: int = 5) -> list:
+
+async def search_semantic_scholar(query: str, max_results: int = 3) -> list:
     """Asynchronously searches Semantic Scholar for a given query."""
     base_url = "https://api.semanticscholar.org/graph/v1/paper/search"
     params = {"query": query, "limit": max_results, "fields": "title,abstract,authors,year,url"}
@@ -23,8 +55,8 @@ async def search_semantic_scholar(query: str, max_results: int = 5) -> list:
     async with semantic_scholar_lock:
         async with httpx.AsyncClient(timeout=20.0, follow_redirects=True) as client:
             try:
-                ## THE FIX: Increase the delay to be more cautious.
-                await asyncio.sleep(3) 
+                # THE FINAL FIX: Increase the delay within the lock to be extra polite.
+                await asyncio.sleep(4) 
                 response = await client.get(base_url, params=params)
                 response.raise_for_status()
                 data = response.json()
@@ -42,3 +74,4 @@ async def search_semantic_scholar(query: str, max_results: int = 5) -> list:
             except Exception as e:
                 logging.error(f"An error occurred during Semantic Scholar search for '{query}': {e}")
                 return []
+
