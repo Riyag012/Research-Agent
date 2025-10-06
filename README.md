@@ -81,7 +81,7 @@ The core of this project is a stateful graph built with **LangGraph**. Each node
 
 The agent's ability to self-improve is clearly visible in the logs. When the Critiquer rejects a section, it triggers a revision cycle.
 
-![Your Log Screenshot Showing the Critique-Rewrite Loop](ss/i.png)
+![Log Screenshot Showing the Critique-Rewrite Loop](ss/i.png)
 
 *An example from the logs where a section received a low score (7/10), was sent back for revision, and passed on the next attempt with a 9/10.*
 
