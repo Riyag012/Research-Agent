@@ -22,6 +22,7 @@ async def search_section(section: str, topic: str, semaphore: asyncio.Semaphore)
         logging.info(f"Starting comprehensive search for section: '{section}'")
         
         # Define all search tasks for the current section
+        # It contains four awaitable coroutine objects. 
         search_tasks = [
             search_tavily(query, max_results=5),
             search_arxiv(query, max_results=3),
@@ -51,11 +52,13 @@ async def search_section(section: str, topic: str, semaphore: asyncio.Semaphore)
             logging.error(f"An unexpected error occurred during search for section '{section}': {e}")
             return []
 
+# he single underscore _ at the beginning of _run_concurrent_searches is a convention in Python to signal that this function is
+# intended for internal use only within the searcher.py file.
 async def _run_concurrent_searches(outline: list, topic: str):
     """
     Manages the concurrent execution of comprehensive searches for all sections.
     """
-    semaphore = asyncio.Semaphore(5)  # Limit concurrent sections being processed
+    semaphore = asyncio.Semaphore(3)  # Limit concurrent sections being processed
     tasks = [search_section(section, topic, semaphore) for section in outline]
     
     # This will be a list of lists of results
@@ -90,3 +93,32 @@ def run_searcher_agent(outline: list, topic: str) -> list:
     except Exception as e:
         logging.error(f"A critical error occurred in the searcher agent: {e}")
         return []
+
+
+'''
+Here is a brief explanation of the role and purpose of each of the three functions in `searcher.py`.
+
+### 1. `search_section()`
+
+* **Role:** The "Worker"
+* **Purpose:** This function does the actual searching for **one single section** of the report. It takes a section topic
+    (e.g., "*A. Wave-Particle Duality*"), runs all the different searches (Tavily, arXiv, News, etc.) concurrently for that topic,
+    gathers the results, and tags each result with the original section name. This tagging is crucial so the writer agent knows
+    which information belongs to which section.
+
+### 2. `_run_concurrent_searches()`
+
+* **Role:** The "Manager" or "Coordinator"
+* **Purpose:** This function manages the entire search operation. It takes the full `outline` (the list of all sections from the planner) 
+    and creates a `search_section` task for **every single section in that outline**. It then runs all of these tasks at the same time to 
+    make the research process as fast as possible. Its final contribution is to collect the results from all the individual section searches
+    and flatten them into one big list.
+
+### 3. `run_searcher_agent()`
+
+* **Role:** The "Public Entry Point"
+* **Purpose:** This is the main function that the `graph.py` file calls to start the entire search process. It acts as a clean interface,
+    hiding the complexity of the asynchronous code. Its job is to kick off the "Manager" (`_run_concurrent_searches`), wait for it to finish,
+    perform some final logging, and then return the complete, flattened list of all search results back to the graph so the next agent
+    (the writer) can use it.
+'''

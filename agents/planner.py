@@ -30,16 +30,17 @@ def get_planner_agent():
         ## THE FIX: Modify the instructions to request a smaller outline.
         ## This ensures the total number of sections is less than the daily API limit of 50.
         prompt_template = """
-You are an expert research assistant. Your task is to create a concise, structured outline for a technical report on the given topic.
+You are an expert research assistant. Your task is to create a structured outline for a technical report on the given topic.
 
 **Topic:**
 {topic}
 
 **Instructions:**
-1.  Generate a hierarchical outline with 3-4 main sections.
-2.  Each main section should have 2-3 subsections.
-3.  Use Markdown for formatting (e.g., use '*' for bullet points).
-4.  Output ONLY the Markdown outline. Do not include any introductory text, concluding text, or any other conversational language.
+1.  Generate a hierarchical outline with 3-5 main sections.
+2.  Each main section should have 2-4 subsections.
+3.  **Crucially, the total number of sections and subsections combined must be between 15 and 25.** This is a strict requirement to manage workload.
+4.  Use Markdown for formatting (e.g., use '*' for bullet points).
+5.  Output ONLY the Markdown outline. Do not include any other text.
 
 **Example Output:**
 * **I. Introduction**
@@ -48,9 +49,11 @@ You are an expert research assistant. Your task is to create a concise, structur
 * **II. Main Section Two**
 * A. Sub-point A
 * B. Sub-point B
+* C. Sub-point C
 """
         prompt = ChatPromptTemplate.from_template(prompt_template)
         planner_agent = prompt | llm
+        # planner_agent: It's a special, executable LangChain object called a "Runnable"(takes i/p returns o/p) or a "Chain, NOT A STRING"
         logging.info("Planner Agent initialized successfully.")
         return planner_agent
     except Exception as e:

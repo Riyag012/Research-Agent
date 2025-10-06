@@ -23,7 +23,7 @@ class Critique(BaseModel):
 
 def get_critiquer_agent():
     """Initializes and returns the Critiquer Agent."""
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.0)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.0)
     
     structured_llm = llm.with_structured_output(Critique)
 

@@ -38,7 +38,9 @@ def main():
 
                 final_state = None
                 # Stream the events from the graph execution
-                for event in app.stream(initial_state):
+                config = {"recursion_limit": 200}
+
+                for event in app.stream(initial_state, config=config):
                     for key, value in event.items():
                         # The key is the name of the node that just ran
                         agent_name = key
